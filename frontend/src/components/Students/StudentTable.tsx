@@ -9,7 +9,7 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { Search, LoaderIcon, Eye, Trash2, Printer } from "lucide-react";
+import { Search, Loader2, Eye, Trash2, Printer, Users } from "lucide-react";
 import { StudentAPI as API } from "@/api/Student/StudentsAPI";
 import { usePrint } from "@/components/print/usePrint";
 export { format } from "date-fns";
@@ -22,15 +22,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { StudentModel } from "@/models/students/Student";
 import { useEffect, useState } from "react";
 import AddNewStudent from "./CreateStudent";
 import DeleteStudentModal from "./DeleteStudentModal";
 import { toast } from "sonner";
-import Card  from "@/components/ui/card";
-import {Pagination} from "@/components/ui/pagination";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +35,18 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { useRole } from "@/context/RoleContext";
+import { Pagination } from "@/components/ui/pagination";
+
+// ─── Detail Row ───────────────────────────────────────────────────────────────
+
+const DetailRow = ({ label, value }: { label: string; value?: string | number }) => (
+  <div>
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{value ?? "—"}</p>
+  </div>
+);
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ModernStudentTable() {
   const [globalFilter, setGlobalFilter] = useState("");
@@ -51,122 +59,128 @@ export default function ModernStudentTable() {
   const { role } = useRole();
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
-  // Get current user ID from localStorage
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
     setCurrentUserId(user?.id || null);
   }, []);
 
-  // Define formDeleteHandler first
   const formDeleteHandler = async (reason: string) => {
     if (!modalStudent || !currentUserId) return;
-    
     try {
-      const payload = {
-        reason,
-        deleted_by: currentUserId
-      };
+      const payload = { reason, deleted_by: currentUserId };
       const response = await API.Delete(modalStudent.id, payload);
-      if (response && typeof response === 'object' && 'status' in response) {
+      if (response && typeof response === "object" && "status" in response) {
         if (response.status === 200) {
-          toast.success("Record deleted successfully", {
-            position: "bottom-center",
-          });
-          GetData(); // Refresh data after delete
+          toast.success("Student deleted successfully", { position: "bottom-center" });
+          GetData();
           setModalStudent(null);
         } else {
-          toast.error("An error occurred", {
-            position: "bottom-center",
-          });
+          toast.error("An error occurred", { position: "bottom-center" });
         }
       }
     } catch (error) {
-      console.log("Error on Delete", error);
-      toast.error("Failed to delete student", {
-        position: "bottom-center",
-      });
+      toast.error("Failed to delete student", { position: "bottom-center" });
     }
   };
 
-  // Define columns after formDeleteHandler
+  const canDelete = role === "ADMIN" || role === "PRINCIPAL";
+
   const columns: ColumnDef<StudentModel>[] = [
     {
       accessorKey: "student_id",
       header: "Sr. No",
-      cell: ({ row }) => <div className="font-medium">{row.getValue("student_id")}</div>,
+      cell: ({ row }) => (
+        <span className="font-semibold text-slate-600 dark:text-slate-400">{row.getValue("student_id")}</span>
+      ),
     },
     {
       accessorKey: "student_name",
       header: "Student Name",
+      cell: ({ row }) => (
+        <span className="font-semibold text-slate-800 dark:text-slate-100">{row.getValue("student_name")}</span>
+      ),
     },
     {
       accessorKey: "student_age",
-      header: "Student Age",
+      header: "Age",
     },
     {
       accessorKey: "student_gender",
-      header: "Student Gender",
+      header: "Gender",
+      cell: ({ row }) => {
+        const gender = row.getValue("student_gender") as string;
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+            gender === "Male"   ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+            : gender === "Female" ? "bg-pink-50 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 border-pink-200 dark:border-pink-800"
+            : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+          }`}>
+            {gender}
+          </span>
+        );
+      },
     },
     {
-      accessorKey: "student_class_name",
-      header: "Student Class Name",
+      accessorKey: "class_name",
+      header: "Class",
+      cell: ({ row }) => (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-100 dark:border-indigo-800">
+          {row.getValue("class_name")}
+        </span>
+      ),
     },
     {
       accessorKey: "student_city",
-      header: "Student City",
+      header: "City",
+      cell: ({ row }) => (
+        <span className="text-slate-600 dark:text-slate-300">{row.getValue("student_city")}</span>
+      ),
     },
     {
       accessorKey: "father_name",
       header: "Father Name",
+      cell: ({ row }) => (
+        <span className="text-slate-700 dark:text-slate-300">{row.getValue("father_name")}</span>
+      ),
     },
     {
       accessorKey: "father_contact",
-      header: "Father Contact",
+      header: "Contact",
+      cell: ({ row }) => (
+        <span className="text-slate-600 dark:text-slate-400 font-mono text-xs">{row.getValue("father_contact")}</span>
+      ),
     },
     {
+      id: "Action",
       accessorKey: "Action",
-      header: "Action",
-      cell: ({ row }) => {
-        // Only ADMIN and PRINCIPAL can delete students
-        const canDelete = role === "ADMIN" || role === "PRINCIPAL";
-        
-        return (
-          <div className="flex gap-2 items-center no-print">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedStudent(row.original);
-                setShowDetailsDialog(true);
-              }}
-              className="flex items-center gap-1"
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex gap-2 items-center no-print">
+          <button
+            onClick={() => { setSelectedStudent(row.original); setShowDetailsDialog(true); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">View</span>
+          </button>
+          {canDelete && (
+            <button
+              onClick={() => setModalStudent({ id: Number(row.original.student_id), name: row.original.student_name })}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800 text-xs font-semibold rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 hover:border-rose-300 dark:hover:border-rose-700 transition-colors"
             >
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">View</span>
-            </Button>
-            {canDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setModalStudent({ id: Number(row.original.student_id), name: row.original.student_name })}
-                className="flex items-center gap-1 text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Delete</span>
-              </Button>
-            )}
-          </div>
-        );
-      }
-    }
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
 
-  // Fetch data from API
   const GetData = async () => {
     setLoading(true);
     try {
-      const response = await API.Get() as { data: StudentModel[] };
-      // console.log(response.data); // Check the API response
+      const response = (await API.Get()) as { data: StudentModel[] };
       setData(response.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -175,9 +189,7 @@ export default function ModernStudentTable() {
     }
   };
 
-  useEffect(() => {
-    GetData();
-  }, []);
+  useEffect(() => { GetData(); }, []);
 
   const table = useReactTable({
     data,
@@ -185,86 +197,93 @@ export default function ModernStudentTable() {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      globalFilter,
-    },
+    state: { globalFilter },
     onGlobalFilterChange: setGlobalFilter,
   });
 
+  const filteredCount = table.getFilteredRowModel().rows.length;
+
   return (
-    <Card className="mt-2 p-3 sm:p-6 w-full bg-white dark:bg-background rounded-lg shadow-lg">
-      <AddNewStudent onClassAdded={GetData} />
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex gap-2 items-center">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+
+      {/* ── Toolbar ──────────────────────────────────────────────────── */}
+      <div className="px-4 sm:px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800 space-y-4">
+        <AddNewStudent onClassAdded={GetData} />
+
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
-            <Input
-              placeholder="Search Students..."
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search students by name, class, city…"
               value={globalFilter ?? ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGlobalFilter(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-300"
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="w-full pl-10 pr-4 h-10 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
             />
           </div>
+
+          {/* Stats chip */}
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shrink-0">
+            <Users className="w-4 h-4 text-slate-400" />
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {filteredCount} <span className="text-slate-400 font-normal">students</span>
+            </span>
+          </div>
+
+          {/* Print */}
           {data.length > 0 && (
             <button
               onClick={() => {
                 const meta = `Total records: ${data.length} · Printed: ${new Date().toLocaleDateString()}`;
-                printRecords('student-print-area', 'Student Report', meta);
+                printRecords("student-print-area", "Student Report", meta);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-4 h-10 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 text-white text-sm font-semibold rounded-xl transition-colors whitespace-nowrap"
             >
-              <Printer size={16} />
+              <Printer className="w-4 h-4" />
               Print
             </button>
           )}
         </div>
       </div>
 
-      {/* Mobile: Card View, Desktop: Table View */}
-      {/* Table rendering - Hidden on mobile, visible on sm and up */}
-      <div className="hidden sm:block w-full rounded-md border border-gray-200 transition-shadow duration-300 hover:shadow-md overflow-x-auto">
-        <div id="student-print-area">
-          <Table className="w-full whitespace-nowrap scroll-smooth">
-          <TableHeader className="bg-primary hover:bg-none text-white sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+      {/* ── Desktop Table ─────────────────────────────────────────────── */}
+      <div className="hidden sm:block overflow-x-auto" id="student-print-area">
+        <Table className="w-full whitespace-nowrap">
+          <TableHeader>
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id} className="bg-slate-800 dark:bg-slate-950 hover:bg-slate-800 dark:hover:bg-slate-950">
+                {hg.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className={`font-bold text-white px-2 sm:px-3 md:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
-                      header.column.columnDef.id === "Action" ? "no-print" : ""
-                    }`}
+                    className={`text-slate-100 text-xs font-semibold uppercase tracking-wider px-4 py-3.5 ${header.column.id === "Action" ? "no-print" : ""}`}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 ))}
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-4">
-                  <div className="flex justify-center">
-                    <LoaderIcon className="animate-spin w-8 h-8 sm:w-10 sm:h-10" />
+                <TableCell colSpan={columns.length} className="py-16 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                    <p className="text-slate-400 text-sm font-medium">Loading students…</p>
                   </div>
                 </TableCell>
               </TableRow>
-            ) : data?.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="hover:bg-slate-50 dark:hover:bg-slate-900">
+            ) : data.length > 0 ? (
+              table.getRowModel().rows.map((row, i) => (
+                <TableRow
+                  key={row.id}
+                  className={`transition-colors hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 ${i % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50/50 dark:bg-slate-800/30"}`}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell 
-                      key={cell.id} 
-                      className={`py-2 px-2 sm:px-3 md:px-4 text-xs sm:text-sm ${
-                        cell.column.columnDef.id === "Action" ? "no-print" : ""
-                      }`}
+                    <TableCell
+                      key={cell.id}
+                      className={`px-4 py-3 text-sm ${cell.column.id === "Action" ? "no-print" : ""}`}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
@@ -273,205 +292,164 @@ export default function ModernStudentTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-gray-500 py-4">
-                  No results found.
+                <TableCell colSpan={columns.length} className="py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                      <Users className="w-7 h-7 text-slate-400" />
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-semibold">No students found</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-sm">
+                      {globalFilter ? "Try adjusting your search" : "Add your first student above"}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-        </div>
       </div>
 
-      {/* Mobile Card View - visible only on small screens */}
-      <div className="sm:hidden space-y-3">
+      {/* ── Mobile Card View ──────────────────────────────────────────── */}
+      <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
         {loading ? (
-          <div className="flex justify-center py-8">
-            <LoaderIcon className="animate-spin w-8 h-8" />
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin w-8 h-8 text-indigo-500" />
           </div>
-        ) : data?.length > 0 ? (
+        ) : data.length > 0 ? (
           table.getRowModel().rows.map((row) => (
-            <div
-              key={row.id}
-              className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg p-3 space-y-2"
-            >
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase">Sr. No</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {row.original.student_id}
-                  </p>
+            <div key={row.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="text-xs text-slate-400 font-medium">#{row.original.student_id}</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">{row.original.student_name}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedStudent(row.original);
-                      setShowDetailsDialog(true);
-                    }}
-                    className="flex items-center gap-1"
+                  <button
+                    onClick={() => { setSelectedStudent(row.original); setShowDetailsDialog(true); }}
+                    className="w-8 h-8 flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                   >
                     <Eye className="w-4 h-4" />
-                  </Button>
-                  {(role === "ADMIN" || role === "PRINCIPAL") && (
-                    <Button
-                      variant="outline"
-                      size="sm"
+                  </button>
+                  {canDelete && (
+                    <button
                       onClick={() => setModalStudent({ id: Number(row.original.student_id), name: row.original.student_name })}
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                      className="w-8 h-8 flex items-center justify-center bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </Button>
+                    </button>
                   )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <p className="font-medium text-gray-600 dark:text-gray-400">Name</p>
-                  <p className="text-gray-900 dark:text-white truncate">{row.original.student_name}</p>
+                  <p className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">Class</p>
+                  <span className="inline-flex items-center px-2.5 py-0.5 mt-0.5 rounded-md bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-100 dark:border-indigo-800">
+                    {row.original.class_name}
+                  </span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600 dark:text-gray-400">Class</p>
-                  <p className="text-gray-900 dark:text-white truncate">{row.original.student_class_name}</p>
+                  <p className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">Gender</p>
+                  <p className="text-slate-700 dark:text-slate-300 mt-0.5">{row.original.student_gender}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600 dark:text-gray-400">Age</p>
-                  <p className="text-gray-900 dark:text-white">{row.original.student_age}</p>
+                  <p className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">Age</p>
+                  <p className="text-slate-700 dark:text-slate-300 mt-0.5">{row.original.student_age}</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-600 dark:text-gray-400">Gender</p>
-                  <p className="text-gray-900 dark:text-white">{row.original.student_gender}</p>
+                  <p className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">City</p>
+                  <p className="text-slate-700 dark:text-slate-300 mt-0.5 truncate">{row.original.student_city}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="font-medium text-gray-600 dark:text-gray-400">City</p>
-                  <p className="text-gray-900 dark:text-white truncate">{row.original.student_city}</p>
+                  <p className="text-slate-400 uppercase tracking-wide text-[10px] font-semibold">Father</p>
+                  <p className="text-slate-700 dark:text-slate-300 mt-0.5">{row.original.father_name} · {row.original.father_contact}</p>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">No results found.</div>
+          <div className="flex flex-col items-center py-12 text-center px-6">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+              <Users className="w-7 h-7 text-slate-400" />
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 font-semibold">No students found</p>
+          </div>
         )}
       </div>
 
-      {/* Pagination */}
-      {!loading && data?.length > 0 && (
-        <>
-          <Pagination
-            className="flex mt-4"
-            currentPage={table.getState().pagination.pageIndex + 1}
-            totalPages={Math.ceil((table?.getFilteredRowModel()?.rows?.length || 1) / table.getState().pagination.pageSize)}
-            onPageChange={(page) => {
-              table.setPageIndex(page - 1);
-            }}
-          />
-          <div className="flex justify-start text-sm text-gray-500 ">
+      {/* ── Pagination ────────────────────────────────────────────────── */}
+      {!loading && data.length > 0 && (
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Showing{" "}
-            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{" "}
-            to{" "}
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-              table?.getFilteredRowModel()?.rows?.length || 0
-            )}{" "}
-            of {table?.getFilteredRowModel()?.rows?.length || 0} results
-          </div>
-        </>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}–
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                filteredCount
+              )}
+            </span>{" "}
+            of <span className="font-semibold text-slate-700 dark:text-slate-300">{filteredCount}</span> students
+          </p>
+          <Pagination
+            className="flex"
+            currentPage={table.getState().pagination.pageIndex + 1}
+            totalPages={Math.ceil(filteredCount / table.getState().pagination.pageSize)}
+            onPageChange={(page) => table.setPageIndex(page - 1)}
+          />
+        </div>
       )}
 
-      {/* Student Details Dialog */}
+      {/* ── Student Details Dialog ────────────────────────────────────── */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Student Details</DialogTitle>
-            <DialogClose />
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl gap-0 bg-white dark:bg-slate-900">
+          <div className="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500 rounded-t-2xl" />
+          <DialogHeader className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <DialogTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">Student Details</DialogTitle>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{selectedStudent?.student_name}</p>
+                </div>
+              </div>
+              <DialogClose asChild>
+                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg p-1.5 transition-colors">
+                  <Eye className="w-4 h-4" />
+                </button>
+              </DialogClose>
+            </div>
           </DialogHeader>
+
           {selectedStudent && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-              {/* Student Information Section */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 border-b pb-2">
-                    Student Information
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Student ID</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{selectedStudent.student_id}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Student Name</p>
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{selectedStudent.student_name}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Date of Birth</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    {new Date(selectedStudent.student_date_of_birth).toLocaleDateString("en-GB")}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Age</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_age}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Gender</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_gender}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Education</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_education}</p>
+            <div className="px-6 py-5 space-y-6">
+              <div>
+                <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-1.5 mb-3">
+                  Student Information
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <DetailRow label="Student ID" value={selectedStudent.student_id} />
+                  <DetailRow label="Full Name" value={selectedStudent.student_name} />
+                  <DetailRow label="Date of Birth" value={new Date(selectedStudent.student_date_of_birth).toLocaleDateString("en-GB")} />
+                  <DetailRow label="Age" value={selectedStudent.student_age} />
+                  <DetailRow label="Gender" value={selectedStudent.student_gender} />
+                  <DetailRow label="Education" value={selectedStudent.student_education} />
+                  <DetailRow label="Class" value={selectedStudent.class_name} />
+                  <DetailRow label="City" value={selectedStudent.student_city} />
+                  <DetailRow label="Address" value={selectedStudent.student_address} />
                 </div>
               </div>
-
-              {/* Additional Information Section */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 border-b pb-2">
-                    Additional Information
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Class Name</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_class_name}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">City</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_city}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Address</p>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.student_address}</p>
-                </div>
-              </div>
-
-              {/* Father Information Section */}
-              <div className="space-y-4 md:col-span-2">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 border-b pb-2">
-                    Father Information
-                  </h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Father Name</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.father_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Father Contact</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.father_contact}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Father Occupation</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.father_occupation}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Father CNIC</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.father_cnic}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Father Caste Name</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedStudent.father_cast_name}</p>
-                  </div>
+              <div>
+                <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800 pb-1.5 mb-3">
+                  Father / Guardian Information
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  <DetailRow label="Father Name" value={selectedStudent.father_name} />
+                  <DetailRow label="Contact" value={selectedStudent.father_contact} />
+                  <DetailRow label="Occupation" value={selectedStudent.father_occupation} />
+                  <DetailRow label="CNIC" value={selectedStudent.father_cnic} />
+                  <DetailRow label="Caste" value={selectedStudent.father_cast_name} />
                 </div>
               </div>
             </div>
@@ -479,7 +457,7 @@ export default function ModernStudentTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Student Modal */}
+      {/* ── Delete Modal ──────────────────────────────────────────────── */}
       {modalStudent && (
         <DeleteStudentModal
           studentId={modalStudent.id}
@@ -488,6 +466,6 @@ export default function ModernStudentTable() {
           onClose={() => setModalStudent(null)}
         />
       )}
-    </Card>
+    </div>
   );
 }

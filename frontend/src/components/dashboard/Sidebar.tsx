@@ -187,7 +187,7 @@ const menuList: MenuItem[] = [
       },
     ],
   },
-  { id: 5, name: "Logout", icon: LogOut, path: "/login" },
+  { id: 5, name: "Logout", icon: LogOut, path: "/" },
 ];
 
 // Map menu item paths to role access sections

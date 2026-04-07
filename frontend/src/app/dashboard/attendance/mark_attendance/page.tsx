@@ -1,15 +1,16 @@
-import MarkAttendance from '@/components/Attendance/MarkAttendance'
-import React from 'react'
+import MarkAttendance from '@/components/Attendance/MarkAttendance';
+import { Header } from '@/components/dashboard/Header';
+import React from 'react';
 
-const page = () => {
+const MarkAttendancePage = () => {
   return (
-    <div className="w-full container mx-auto h-screen overflow-y-hidden bg-bg-light-secondary dark:bg-bg-dark-primary">
-      <div className="pt-2 pl-2 pr-2">
-        {/* <Header value="Mark Attendance" /> */}
+    <div className="min-h-screen bg-slate-50 dark:bg-neutral-950 -m-4">
+      <Header value="Mark Attendance" subtitle="Record daily student attendance by class" />
+      <div className="p-4 sm:p-6">
+        <MarkAttendance />
       </div>
-      <MarkAttendance/>
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default MarkAttendancePage;
