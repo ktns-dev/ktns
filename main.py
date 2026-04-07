@@ -70,9 +70,8 @@ async def lifespan(app: FastAPI):
 
 origins = [
     "http://localhost:3000",  # Next.js development server
-    # "https://mzbs.vercel.app",  # Production frontend
-    "https://ktns.netlify.app/",  # Netlify production frontend
-    "https://site--mzbs--lvqlqxbx7xgh.code.run"  # Current deployment
+    "https://ktns.netlify.app",  # Netlify production frontend (without trailing slash)
+    "https://site--mzbs--lvqlqxbx7xgh.code.run",  # Current deployment (without trailing slash)
 ]
 
 app = FastAPI(
@@ -106,21 +105,23 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 # except Exception:
 #     logger.warning("HTTPSRedirectMiddleware not available, skipping")
 
-# Security: Add trusted hosts middleware to prevent Host header attacks
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "mzbs.vercel.app", "*.vercel.app","site--mzbs--lvqlqxbx7xgh.code.run"]
-)
-
 # Security: Restrict CORS to specific methods and headers
+# IMPORTANT: CORSMiddleware must be added AFTER TrustedHostMiddleware
+# (since middleware executes in reverse order - LIFO)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Added OPTIONS for preflight requests
-    allow_headers=["Content-Type", "Authorization"],  # Specific headers only
-    expose_headers=["Content-Type"],  # Only expose necessary headers
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Content-Type"],
     max_age=3600  # Cache preflight requests for 1 hour
+)
+
+# Security: Add trusted hosts middleware to prevent Host header attacks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["localhost", "127.0.0.1", "mzbs.vercel.app", "*.vercel.app", "ktns.netlify.app", "site--mzbs--lvqlqxbx7xgh.code.run"]
 )
 
 # Include routers
