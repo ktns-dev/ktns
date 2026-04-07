@@ -71,7 +71,8 @@ async def lifespan(app: FastAPI):
 origins = [
     "http://localhost:3000",  # Next.js development server
     # "https://mzbs.vercel.app",  # Production frontend
-    "https://ktns.netlify.app/"  # Netlify production frontend
+    "https://ktns.netlify.app/",  # Netlify production frontend
+    "https://site--mzbs--lvqlqxbx7xgh.code.run"  # Current deployment
 ]
 
 app = FastAPI(
@@ -116,7 +117,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],  # Specific methods only
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Added OPTIONS for preflight requests
     allow_headers=["Content-Type", "Authorization"],  # Specific headers only
     expose_headers=["Content-Type"],  # Only expose necessary headers
     max_age=3600  # Cache preflight requests for 1 hour
