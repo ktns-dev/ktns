@@ -70,12 +70,13 @@ async def lifespan(app: FastAPI):
 
 origins = [
     "http://localhost:3000",  # Next.js development server
-    # "https://mzbs.vercel.app"  # Production frontend
+    # "https://mzbs.vercel.app",  # Production frontend
+    "https://mzbs.netlify.app"  # Netlify production frontend
 ]
 
 app = FastAPI(
-    title="MMS-GENERAL", 
-    description="Manages all API for MMS-GENERAL",
+    title="ktns", 
+    description="Manages all API for ktns",
     version="0.1.0",
     openapi_url="/docs/json",
     docs_url="/docs",
@@ -107,7 +108,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 # Security: Add trusted hosts middleware to prevent Host header attacks
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "mzbs.vercel.app", "*.vercel.app"]
+    allowed_hosts=["localhost", "127.0.0.1", "mzbs.vercel.app", "*.vercel.app","site--mzbs--lvqlqxbx7xgh.code.run"]
 )
 
 # Security: Restrict CORS to specific methods and headers

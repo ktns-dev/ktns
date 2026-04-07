@@ -20,7 +20,7 @@ income_cat_names_router = APIRouter(
 
 @income_cat_names_router.get("/", response_model=dict)
 async def root():
-    return {"message": "MMS-General service is running", "status": "Income Category Names Router Page running :-)"}
+    return {"message": "ktns service is running", "status": "Income Category Names Router Page running :-)"}
 
 
 @income_cat_names_router.post("/add_income_cat_name/", response_model=IncomeCatNamesResponse)

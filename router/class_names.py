@@ -19,7 +19,7 @@ classnames_router = APIRouter(
 
 @classnames_router.get("/", response_model=dict)
 async def root():
-    return {"message": "MMS-General service is running", "status": "Class Name Router Page running :-)"}
+    return {"message": "ktns service is running", "status": "Class Name Router Page running :-)"}
 
 @classnames_router.post("/add_class_name/", response_model=ClassNamesResponse)
 def create_classnames(user: Annotated[User, Depends(require_admin())],classnames: ClassNamesCreate, session: Session = Depends(get_session)):

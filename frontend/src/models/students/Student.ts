@@ -13,7 +13,7 @@ export interface StudentModel extends EntityBase {
 
   student_education: string;
 
-  class_name: string;
+  student_class_name: string;
 
   student_city: string;
 

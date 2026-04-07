@@ -1195,7 +1195,7 @@ wheels = [
 ]
 
 [[package]]
-name = "mms-general"
+name = "ktns"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

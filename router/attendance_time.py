@@ -18,7 +18,7 @@ attendance_time_router = APIRouter(
 
 @attendance_time_router.get("/", response_model=dict)
 async def root():
-    return {"message": "MMS-General service is running", "status": "Attendance Time Router Page running :-)"}
+    return {"message": "ktns service is running", "status": "Attendance Time Router Page running :-)"}
 
 
 @attendance_time_router.post("/add_attendance_value/", response_model=AttendanceTimeResponse)

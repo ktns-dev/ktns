@@ -20,7 +20,7 @@ teachernames_router = APIRouter(
 
 @teachernames_router.get("/", response_model=dict)
 async def root():
-    return {"message": "MMS-General service is running", "status": "Teacher Name Router Page running :-)"}
+    return {"message": "ktns service is running", "status": "Teacher Name Router Page running :-)"}
 
 
 @teachernames_router.post("/add_teacher_name/", response_model=TeacherNamesResponse)

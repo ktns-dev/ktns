@@ -2,15 +2,18 @@ import { Header } from "@/components/dashboard/Header";
 import ModernStudentTable from "@/components/Students/StudentTable";
 import React from "react";
 
-const StudentsPage = () => {
+const page = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-neutral-950 -m-4">
-      <Header value="Students" subtitle="Manage student records and enrollment" />
-      <div className="p-4 sm:p-6">
+    <div className="w-full md:w-[85%] h-screen overflow-y-auto overflow-x-auto bg-bg-light-secondary dark:bg-bg-dark-primary">
+      <div className="w-full">
+        <Header value="Students List" />
+      </div>
+      {/* <AddNewStudent/> */}
+      <div className="px-3 sm:px-6 md:px-4">
         <ModernStudentTable />
       </div>
     </div>
   );
 };
 
-export default StudentsPage;
+export default page;

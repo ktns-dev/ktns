@@ -1,16 +1,16 @@
 import AttendanceTable from "@/components/Attendance/ViewAttendance";
-import { Header } from "@/components/dashboard/Header";
 import React from "react";
+import { Header } from "@/components/dashboard/Header";
 
-const ViewAttendancePage = () => {
+const page = () => {
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-neutral-950 -m-4">
-      <Header value="View Attendance" subtitle="Search, filter and manage attendance records" />
-      <div className="p-4 sm:p-6">
-        <AttendanceTable />
+    <div className="w-full h-screen overflow-y-hidden bg-bg-light-secondary dark:bg-bg-dark-primary">
+      <div className="pt-2 pl-2 pr-2">
+        <Header value="View Attendance" />
       </div>
+      <AttendanceTable />
     </div>
   );
 };
 
-export default ViewAttendancePage;
+export default page;

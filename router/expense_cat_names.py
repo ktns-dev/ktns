@@ -20,7 +20,7 @@ expense_cat_names_router = APIRouter(
 
 @expense_cat_names_router.get("/", response_model=dict)
 async def root():
-    return {"message": "MMS-General service is running", "status": "expense Category Names Router Page running :-)"}
+    return {"message": "ktns service is running", "status": "expense Category Names Router Page running :-)"}
 
 @expense_cat_names_router.post("/add_expense_cat_name/", response_model=ExpenseCatNamesResponse)
 def create_expense_cat_name( 
