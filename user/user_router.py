@@ -428,27 +428,24 @@ async def logout(
     try:
         # Revoke refresh token (server-side revocation)
         if refresh_token:
-            revoke_refresh_token(db, refresh_token)
+            try:
+                revoke_refresh_token(db, refresh_token)
+            except Exception as e:
+                logger.warning(f"Could not revoke refresh token: {str(e)}")
+                # Continue with logout even if revocation fails
         
-        # Clear both cookies to ensure clean logout
-        response.delete_cookie(
-            key="access_token",
-            httponly=True,
-            secure=True,
-            samesite="strict"
-        )
-        response.delete_cookie(
-            key="refresh_token",
-            httponly=True,
-            secure=True,
-            samesite="strict"
-        )
+        # Clear both cookies - delete_cookie only needs the key
+        response.delete_cookie(key="access_token")
+        response.delete_cookie(key="refresh_token")
         
         logger.info(f"User {current_user.username} logged out successfully")
         return {"message": "Successfully logged out"}
         
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 401 Unauthorized)
+        raise
     except Exception as e:
-        logger.error(f"Logout error for user {current_user.username}: {str(e)}")
+        logger.error(f"Logout error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Logout failed"
