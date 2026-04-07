@@ -70,7 +70,7 @@ async def lifespan(app: FastAPI):
 
 origins = [
     "http://localhost:3000",  # Next.js development server
-    "https://mzbs.vercel.app"  # Production frontend
+    # "https://mzbs.vercel.app"  # Production frontend
 ]
 
 app = FastAPI(
