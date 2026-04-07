@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
 origins = [
     "http://localhost:3000",  # Next.js development server
     # "https://mzbs.vercel.app",  # Production frontend
-    "https://mzbs.netlify.app"  # Netlify production frontend
+    "https://ktns.netlify.app/"  # Netlify production frontend
 ]
 
 app = FastAPI(
